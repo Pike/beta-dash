@@ -1,4 +1,4 @@
-var bzapi = 'https://api-dev.bugzilla.mozilla.org/1.1/';
+var bzapi = 'https://api-dev.bugzilla.mozilla.org/1.2/';
 
 function getComments(bug, loc, cont) {
   var url = bzapi + 'bug/' + bug + '/comment';
