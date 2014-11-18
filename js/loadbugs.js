@@ -1,23 +1,35 @@
 var bzapi = 'https://bugzilla.mozilla.org/rest/';
+jQuery.ajaxSettings.traditional = true;
 
-function getComments(bug, loc, cont) {
-  var url = bzapi + 'bug/' + bug + '/comment';
+function getComments(buglist, cont) {
+  var bugs = {};
+  $.each(buglist, function(i, bug) {
+    bugs[bug.id] = bug;
+  });
+  var bug_ids = Object.keys(bugs);
+  var bug = bug_ids.shift();
+  var url = bzapi + 'bug/' + bug + '/comment', params = {};
+  if (bug_ids.length) {
+    params.ids = bug_ids;
+  }
   var ch = function _commentHandler(data) {
     var items = [];
-    $.each(data.bugs[bug].comments, function(i, comment) {
+    $.each(data.bugs, function(bug_id, blob) {
+      $.each(blob.comments, function(i, comment) {
       items.push({
-        label: bug,
-        id: bug + '_' + i,
+        label: bug_id,
+        id: bug_id + '_' + i,
         creation_time: comment.creation_time,
         creator: comment.name,
-        locale: loc,
+        locale: bugs[bug_id].loc,
         number: i,
         type: 'Comment'
       });
     });
+    });
     exhibit.getDatabase().loadItems(items, url, cont);
   };
-  $.getJSON(url, ch);
+  $.getJSON(url, params, ch);
 }
 
 var Bugs = {
@@ -56,15 +68,16 @@ Bugs.Loader = (function() {
           keywords: bug.keywords,
           type: 'Bug'
         });
+        bug.loc = self.loc || /\[([a-zA-Z\-]+)\]/.exec(bug.summary)[1];
         if (self.getdepends) {
           var bl = new _Loader(bug.id, self.db, _cont)
           bl.getdepends = false;
+          bl.loc = bug.loc;
           this.pending++;
           bl.load();
         }
-        loc = /\[([a-zA-Z\-]+)\]/.exec(bug.summary)[1];
-        getComments(bug.id, loc, _cont);
       });
+      getComments(bugs, _cont);
       this.db.loadItems.call(this.db, items, this.url, this.doneLoad.bind(this));
     },
     doneLoad: function _ld() {
