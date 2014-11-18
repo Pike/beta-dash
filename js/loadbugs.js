@@ -1,4 +1,4 @@
-var bzapi = 'https://api-dev.bugzilla.mozilla.org/1.3/';
+var bzapi = 'https://bugzilla.mozilla.org/bzapi/';
 
 function getComments(bug, loc, cont) {
   var url = bzapi + 'bug/' + bug + '/comment';
@@ -15,14 +15,12 @@ function getComments(bug, loc, cont) {
         type: 'Comment'
       });
     });
-    exhibit.getDatabase().loadItems(items, url);
-    if (cont) cont();
+    exhibit.getDatabase().loadItems(items, url, cont);
   };
   $.getJSON(url, ch);
 }
 
 var Bugs = {
-  Importer: {}
 };
 
 Bugs.Loader = (function() {
@@ -67,8 +65,7 @@ Bugs.Loader = (function() {
         loc = /\[([a-zA-Z\-]+)\]/.exec(bug.summary)[1];
         getComments(bug.id, loc, _cont);
       });
-      this.db.loadItems.call(this.db, items, this.url);
-      this.doneLoad();
+      this.db.loadItems.call(this.db, items, this.url, this.doneLoad.bind(this));
     },
     doneLoad: function _ld() {
       this.pending--;
@@ -78,7 +75,9 @@ Bugs.Loader = (function() {
   return _Loader;
 })();
 
-Exhibit.importers["application/x-blocking-bugs"] = Bugs.Importer;
+$(document).one("registerImporters.exhibit", function() {
+
+Bugs.Importer = new Exhibit.Importer("application/x-blocking-bugs", "get", console.error.bind(console));
 
 Bugs.Importer.load = function _loadbugs(link, database, cont) {
   function doneImporting() {
@@ -88,4 +87,7 @@ Bugs.Importer.load = function _loadbugs(link, database, cont) {
   var bl = new Bugs.Loader('585992', database, doneImporting);
   bl.load();
   Exhibit.UI.showBusyIndicator();
-}
+};
+// XXX Hack
+Timeline.DateTime = Exhibit.DateTime;
+});
