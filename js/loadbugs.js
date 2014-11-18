@@ -1,15 +1,15 @@
-var bzapi = 'https://bugzilla.mozilla.org/bzapi/';
+var bzapi = 'https://bugzilla.mozilla.org/rest/';
 
 function getComments(bug, loc, cont) {
   var url = bzapi + 'bug/' + bug + '/comment';
   var ch = function _commentHandler(data) {
     var items = [];
-    $.each(data.comments, function(i, comment) {
+    $.each(data.bugs[bug].comments, function(i, comment) {
       items.push({
         label: bug,
         id: bug + '_' + i,
         creation_time: comment.creation_time,
-        creator: comment.creator.name,
+        creator: comment.name,
         locale: loc,
         number: i,
         type: 'Comment'
