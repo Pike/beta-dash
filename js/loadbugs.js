@@ -24,7 +24,7 @@ function getComments(buglist, cont) {
         label: bug_id,
         id: bug_id + '_' + i,
         creation_time: comment.creation_time,
-        creator: comment.name,
+        creator: comment.creator.split('@')[0],
         locale: bugs[bug_id].loc,
         number: i,
         type: 'Comment'
