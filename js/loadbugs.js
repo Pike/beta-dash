@@ -7,6 +7,10 @@ function getComments(buglist, cont) {
     bugs[bug.id] = bug;
   });
   var bug_ids = Object.keys(bugs);
+  if (bug_ids.length === 0) {
+    cont();
+    return;
+  }
   var bug = bug_ids.shift();
   var url = bzapi + 'bug/' + bug + '/comment', params = {};
   if (bug_ids.length) {
